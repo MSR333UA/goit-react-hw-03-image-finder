@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import { ImHipster } from 'react-icons/im';
 import { SearchButton } from 'components/Button/Button.styled';
+import { toast, ToastContainer } from 'react-toastify';
 import {
   SearchForm,
   SearchHeader,
@@ -21,13 +22,16 @@ export class SearchBar extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
-
     const { searchPhotos } = this.state;
-    this.props.onSubmit(searchPhotos);
 
+    if (searchPhotos.trim() === '') {
+      alert('🦄 Something went wrong!');
+      return;
+    }
+
+    this.props.onSubmit(searchPhotos);
     this.reset();
   };
-
   reset = () => {
     this.setState({ searchPhotos: '' });
   };

@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { Component, createRef } from 'react';
 
 import { ToastContainer, toast } from 'react-toastify';
 import { getImages } from '../../services/api';
@@ -8,7 +8,6 @@ import { Loader } from 'components/Loader/Loader';
 import { Modal } from 'components/Modal/Modal';
 import { AppWrap } from './App.styled';
 import { Button } from 'components/Button/Button';
-import { createRef } from 'react';
 
 export class App extends Component {
   state = {
@@ -18,49 +17,51 @@ export class App extends Component {
     isLoading: false,
     page: 1,
     bigImage: '',
-    // showModal: false,
   };
 
-  async componentDidMount() {
-    this.setState({ search: '', page: 1 });
+  imagesItemRef = createRef();
+
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    if (prevState.images.length !== this.state.images.length) {
+      return this.imagesRef?.current?.scrollHeight ?? null;
+    }
+    return null;
   }
 
-  // getSnapshotBeforeUpdate(_, prevState) {
-  //   console.dir(this.imagesRef?.current);
-  //   // if (prevState.photos.length === this.state.photos.length) {
-  //   //   console.dir(this.imagesRef.current);
-  //   // }
-  //   return null;
-  // }
-
-  async componentDidUpdate(_, prevState) {
+  componentDidUpdate(_, prevState, snapShot) {
     if (
       prevState.page !== this.state.page ||
       prevState.search !== this.state.search
     ) {
-      this.setState({ isLoading: true });
-      try {
-        const photos = await getImages(this.state.search, this.state.page);
-        this.setState({
-          images: [...this.state.images, ...photos.data.hits],
-        });
-      } catch (error) {
-        this.setState({ error });
-        toast.info(`Something went wrong ${error}`);
-      } finally {
-        this.setState({ isLoading: false });
-      }
+      this.loafImages();
     }
 
-    // if (this.state.images !== prevState.images) {
-    //   console.log('imagesItemRef', this.imagesItemRef);
-    //   this.imagesItemRef.current.scrollIntoView({
-    //     block: 'start',
-    //     behavior: 'smooth',
-    //   });
-    // }
+    if (snapShot) {
+      window.scrollTo({ top: snapShot, behavior: 'smooth' });
+    }
   }
-  // imagesItemRef = createRef();
+
+  // scroll = () => {
+  //   this.imagesItemRef?.current?.scrollIntoView({
+  //     block: 'start',
+  //     behavior: 'smooth',
+  //   });
+  // };
+
+  loafImages = async () => {
+    this.setState({ isLoading: true });
+    try {
+      const photos = await getImages(this.state.search, this.state.page);
+      this.setState({
+        images: [...this.state.images, ...photos.data.hits],
+      });
+    } catch (error) {
+      this.setState({ error });
+      toast.error(`Something went wrong ${error}`);
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
 
   toggleModal = largeImageURL => {
     this.setState(({ showModal, bigImage }) => ({
@@ -70,46 +71,30 @@ export class App extends Component {
   };
 
   loadMore = () => {
-    this.setState(
-      prevState => ({ page: prevState.page + 1 })
-
-      // async () => {
-      //   const { images } = await getImages(undefined, this.state.page);
-      //   this.setState(prev => ({ images: [...prev.images, ...images] }));
-      // }
-    );
-
-    // this.setState(prevState => ({
-    //   images: [...prevState.images, ...this.state.images]
-    // }));
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
   handleSubmit = async search => {
     this.setState({ search, page: 1, images: [] });
-
-    // this.setState({ page: 1 }, async () => {
-    //   const { images } = await getImages(search, this.state.page);
-    //   this.setState({ images });
-    // });
   };
 
   render() {
     const { isLoading, images, bigImage, error } = this.state;
 
-    if (error)
-      return (
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
-      );
+    // if (error)
+    //   return (
+    //     <ToastContainer
+    //       position="top-center"
+    //       autoClose={3000}
+    //       // hideProgressBar={false}
+    //       // newestOnTop={false}
+    //       // closeOnClick
+    //       // rtl={false}
+    //       // pauseOnFocusLoss
+    //       // draggable
+    //       // pauseOnHover
+    //     />
+    //   );
 
     return (
       <AppWrap>
@@ -121,23 +106,12 @@ export class App extends Component {
             images={images}
             onClick={this.toggleModal}
             imagesItemRef={this.imagesItemRef}
+            onScroll={this.scroll}
           />
         )}
 
         {bigImage && <Modal img={bigImage} onClick={this.toggleModal} />}
         {images.length !== 0 && <Button nextPage={this.loadMore} />}
-
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
       </AppWrap>
     );
   }

@@ -5,9 +5,10 @@ export const ImageGalleryItem = ({
   tags,
   largeImageURL,
   onClickItem,
+  ref,
 }) => {
   return (
-    <ImgGalleryItem>
+    <ImgGalleryItem ref={ref}>
       <ImgGalleryImg
         src={webformatURL}
         alt={tags}
