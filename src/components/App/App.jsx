@@ -1,9 +1,9 @@
-import { Component, createRef } from 'react';
+import { Component } from 'react';
 
-import { ToastContainer, toast } from 'react-toastify';
+// import { ToastContainer, toast } from 'react-toastify';
 import { getImages } from '../../services/api';
 import { SearchBar } from 'components/SearchBar/SearchBar';
-import { ImageGallery } from 'components/ImageGallery/ImageGallery';
+import ImageGallery from 'components/ImageGallery/ImageGallery';
 import { Loader } from 'components/Loader/Loader';
 import { Modal } from 'components/Modal/Modal';
 import { AppWrap } from './App.styled';
@@ -19,36 +19,23 @@ export class App extends Component {
     bigImage: '',
   };
 
-  imagesItemRef = createRef();
+  // const status = {
+  //   IDLE: 'idle',
+  //   PENDING: 'pending',
+  //   REJECTED: 'rejected',
+  //   RESOLVED: 'resolved',
+  // };;
 
-  getSnapshotBeforeUpdate(prevProps, prevState) {
-    if (prevState.images.length !== this.state.images.length) {
-      return this.imagesRef?.current?.scrollHeight ?? null;
-    }
-    return null;
-  }
-
-  componentDidUpdate(_, prevState, snapShot) {
+  componentDidUpdate(_, prevState) {
     if (
       prevState.page !== this.state.page ||
       prevState.search !== this.state.search
     ) {
-      this.loafImages();
-    }
-
-    if (snapShot) {
-      window.scrollTo({ top: snapShot, behavior: 'smooth' });
+      this.loadImages();
     }
   }
 
-  // scroll = () => {
-  //   this.imagesItemRef?.current?.scrollIntoView({
-  //     block: 'start',
-  //     behavior: 'smooth',
-  //   });
-  // };
-
-  loafImages = async () => {
+  loadImages = async () => {
     this.setState({ isLoading: true });
     try {
       const photos = await getImages(this.state.search, this.state.page);
@@ -57,7 +44,7 @@ export class App extends Component {
       });
     } catch (error) {
       this.setState({ error });
-      toast.error(`Something went wrong ${error}`);
+      alert(`Something went wrong ${error}`);
     } finally {
       this.setState({ isLoading: false });
     }
@@ -76,39 +63,19 @@ export class App extends Component {
 
   handleSubmit = async search => {
     this.setState({ search, page: 1, images: [] });
+    window.scrollTo({ top: 10, behavior: 'smooth' });
   };
 
   render() {
-    const { isLoading, images, bigImage, error } = this.state;
-
-    // if (error)
-    //   return (
-    //     <ToastContainer
-    //       position="top-center"
-    //       autoClose={3000}
-    //       // hideProgressBar={false}
-    //       // newestOnTop={false}
-    //       // closeOnClick
-    //       // rtl={false}
-    //       // pauseOnFocusLoss
-    //       // draggable
-    //       // pauseOnHover
-    //     />
-    //   );
+    const { isLoading, images, bigImage } = this.state;
 
     return (
       <AppWrap>
         <SearchBar onSubmit={this.handleSubmit} />
+
         {isLoading && <Loader />}
 
-        {images && !isLoading && (
-          <ImageGallery
-            images={images}
-            onClick={this.toggleModal}
-            imagesItemRef={this.imagesItemRef}
-            onScroll={this.scroll}
-          />
-        )}
+        {images && <ImageGallery images={images} onClick={this.toggleModal} />}
 
         {bigImage && <Modal img={bigImage} onClick={this.toggleModal} />}
         {images.length !== 0 && <Button nextPage={this.loadMore} />}

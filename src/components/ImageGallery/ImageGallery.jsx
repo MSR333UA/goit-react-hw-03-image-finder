@@ -1,13 +1,31 @@
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { ImageGalleryUl } from './ImageGallery.styled';
 import PropTypes from 'prop-types';
-import React from 'react';
 
-export const ImageGallery = React.forwardRef(
-  ({ onClick, images }, imagesItemRef) => {
+import React, { Component, createRef } from 'react';
+
+class ImageGallery extends Component {
+  listRef = createRef();
+
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    if (prevProps.images.length < this.props.images.length) {
+      const list = this.listRef.current;
+      return list.scrollHeight - list.scrollTop;
+    }
+
+    return null;
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (snapshot) {
+      window.scrollTo({ top: snapshot, behavior: 'smooth' });
+    }
+  }
+
+  render() {
     return (
-      <ImageGalleryUl ref={imagesItemRef}>
-        {images.map(({ id, tags, webformatURL, largeImageURL }) => {
+      <ImageGalleryUl ref={this.listRef}>
+        {this.props.images.map(({ id, tags, webformatURL, largeImageURL }) => {
           return (
             <ImageGalleryItem
               key={id}
@@ -16,7 +34,7 @@ export const ImageGallery = React.forwardRef(
               webformatURL={webformatURL}
               largeImageURL={largeImageURL}
               onClickItem={() => {
-                onClick(largeImageURL);
+                this.props.onClick(largeImageURL);
               }}
             />
           );
@@ -24,7 +42,9 @@ export const ImageGallery = React.forwardRef(
       </ImageGalleryUl>
     );
   }
-);
+}
+
+export default ImageGallery;
 
 ImageGallery.propTypes = {
   images: PropTypes.array.isRequired,

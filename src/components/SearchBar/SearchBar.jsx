@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { ImHipster } from 'react-icons/im';
 import { SearchButton } from 'components/Button/Button.styled';
-import { toast, ToastContainer } from 'react-toastify';
+
 import {
   SearchForm,
   SearchHeader,
@@ -25,7 +25,7 @@ export class SearchBar extends Component {
     const { searchPhotos } = this.state;
 
     if (searchPhotos.trim() === '') {
-      alert('🦄 Something went wrong!');
+      alert('🌞 Something went wrong!');
       return;
     }
 

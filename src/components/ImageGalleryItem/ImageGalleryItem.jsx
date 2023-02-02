@@ -8,7 +8,7 @@ export const ImageGalleryItem = ({
   ref,
 }) => {
   return (
-    <ImgGalleryItem ref={ref}>
+    <ImgGalleryItem>
       <ImgGalleryImg
         src={webformatURL}
         alt={tags}
